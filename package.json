@@ -1,6 +1,6 @@
 {
   "name": "univoxa",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "univoxa is a global platform where anyone can join anonymously with people from all over the world .It's a safe space for open ,honest ,and unfiltered conversations fostering a worldwide community without border or judgments",
   "main": "index.js",
   "dependencies": {

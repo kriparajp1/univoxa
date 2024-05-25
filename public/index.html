@@ -90,8 +90,84 @@
         padding-top:1rem;
         height:100px;
     }
+    #messages{
+      display: flex;
+      flex-direction: column;
+    }
+    #messages li{
+      white-space: normal;
+      word-wrap: break-word;
+    }
+    #messages .user {
+      width: 20rem;
+      align-self: flex-end;
+      background-color: #3a3a4f;
+    }
+
+    #messages .other {
+      width: 20rem;
+      align-self: flex-start;
+      background-color: #59599f;
+    }
+  </style>
+  <style>
+    h3 {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+#username-input {
+  color: gray;
+  margin-bottom: 35px;
+}
+
+.box {
+  padding: 35px;
+  border: 2px solid gray;
+  border-radius: 50px/50px;
+  background-clip: padding-box;
+  text-align: center;
+}
+
+#username-input {
+  font-size: 1em;
+  padding: 10px;
+  color: gray;
+  border: 2px solid #1B727E;
+  border-radius: 50px/50px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: opacity 500ms;
+  visibility: hidden;
+  opacity: 0;
+}
+.overlay:target {
+  visibility: visible;
+  opacity: 1;
+}
+
+
+
+@media screen and (max-width: 700px){
+  .box{
+    width: 70%;
+  }
+  
+}
+
   </style>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="icon" type="image/x-icon" href="favicon.png">
 </head>
 <body>
@@ -103,10 +179,48 @@
     <input id="input" autocomplete="off" placeholder="Type your message here..." /><button id="send">Send</button>
   </form>
 
+  <div class="box" id="username-dialog" title="">
+    <img src="favicon.png" alt="" style="height:100px;padding-top=0rem">
+    <h3>Enter Your Nickname</h3>
+    <input id="username-input" type="text" placeholder="_ _ _ _ _ _ _ _ _ _ _ _ _ _ _">
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+    let username;
 
+    $(document).ready(function() {
+        $("#username-dialog").dialog({
+            modal: true,
+            autoOpen: true,
+            closeOnEscape: false,
+            position: { my: "center", at: "center", of: window },
+            open: function(event, ui) {
+                $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+            },
+            buttons: {
+                Ok: function() {
+                    username = $("#username-input").val();
+                    if (username === "") {
+                        alert("Throw your nickname into the ring, and then the fun begins❗");
+                    } else {
+                        $(this).dialog("close");
+                    }
+                }
+            },
+            beforeClose: function(event, ui) {
+                if (username === "") {
+                    alert("Throw your nickname into the ring, and then the fun begins❗");
+                    return false;
+                }
+            }
+        });
+    });
+    
+
+    const socket = io();
     const form = document.getElementById('form');
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
@@ -114,13 +228,15 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       if (input.value) {
-        socket.emit('chat message', input.value);
+        socket.emit('chat message', { username, message: input.value });
         input.value = '';
       }
     });
+
     socket.on('chat message', function(msg) {
       const item = document.createElement('li');
-      item.textContent = msg;
+      item.className = username === msg.username ? 'user' : 'other';
+      item.textContent = msg.username + '⚡ ' + msg.message;
       messages.appendChild(item);
       window.scrollTo(0, document.body.scrollHeight);
     });
